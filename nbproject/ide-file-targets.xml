@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir=".." name="Imap-IDE">
+    
+    <property name="sourceDir"       value="source"/>
+    <property name="buildDir"        value="build"/>
+    <property name="librariesDir"    value="libraries"/>
+    <property name="testDir"         value="test"/>
+
+    <property name="classesDir"      value="${buildDir}/classes"/>
+    <property name="testClassesDir"  value="${buildDir}/tests"/>
+    <property name="jarDir"          value="${buildDir}/jar"/>
+    <property name="testReportsDir"  value="${buildDir}/testReports/"/>
+    <property name="javadocDir"      value="${buildDir}/javadoc/"/>
+    <property name="jarFile"         value="${jarDir}/${ant.project.name}.jar"/>
+    <property name="onejarFile"      value="${jarDir}/${ant.project.name}.onejar"/>
+
+    <property name="mainClass"       value="imap.MainApplication"/>
+
+    <target name="-profile-check">
+        <startprofiler freeform="true"/>
+    </target>
+    <!-- TODO: edit the following target according to your needs -->
+    <!-- (more info: http://netbeans.org/kb/articles/freeform-config.html#profilej2se) -->
+    <target depends="-profile-check" if="profiler.configured" name="profile-nb">
+        <path id="cp">
+            <pathelement path="${classpath}"/>
+            <pathelement location="${classesDir}"/>
+            <pathelement location="${testClassesDir}"/>
+            <fileset dir="${librariesDir}">
+                <include name="**/*.jar"/>
+        </fileset>
+        </path>
+        <java classname="${mainClass}" fork="true">
+            <classpath refid="cp"/>
+            <jvmarg line="${agent.jvmargs}"/>
+        </java>
+    </target>
+</project>

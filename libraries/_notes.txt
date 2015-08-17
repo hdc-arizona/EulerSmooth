@@ -1,0 +1,43 @@
+*** CODING
+
+commons-cli
+   Command line interface parser
+
+commons-csv
+   Csv file parsing
+
+commons-exec
+   Executes external commands by system calls
+
+lombok
+   Automatic equals, hashCode
+   
+ejml
+   Matrix manipulation library
+   
+   
+*** TESTING
+
+junit
+   Unit tests
+   
+hamcrest
+   More readable unit tests
+   
+mockito
+   Create mock objects
+
+powermock  (cglib, javassist, objenesis)
+   Easy access to private methods/fields for test pourpose
+   
+   
+*** DELIVERING
+
+one-jar
+   Packs everything into a single jar
+
+   
+*** DOCUMENTATION
+
+ant_latex
+   Allows to run latex tasks from ant

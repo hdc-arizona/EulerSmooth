@@ -1,0 +1,197 @@
+<?xml version="1.0"?>
+
+<project name="EulerSmooth" basedir="." default="setup">
+
+    <property name="sourceDir"       value="source"/>
+    <property name="buildDir"        value="build"/>
+    <property name="librariesDir"    value="libraries"/>
+    <property name="testDir"         value="test"/>
+    <property name="docDir"          value="documentation"/>
+    <property name="devManDir"       value="${docDir}/developer"/>
+
+    <property name="classesDir"      value="${buildDir}/classes"/>
+    <property name="testClassesDir"  value="${buildDir}/tests"/>
+    <property name="testReportsDir"  value="${buildDir}/testReports"/>
+    <property name="jarDir"          value="${buildDir}/jar"/>
+    
+    <property name="docBuildDir"     value="${buildDir}/documentation"/>
+    <property name="javaDocDir"      value="${docBuildDir}/javadoc"/>
+
+    <property name="jarFile"         value="${jarDir}/${ant.project.name}.jar"/>
+    <property name="onejarFile"      value="${jarDir}/${ant.project.name}.one.jar"/>
+
+    <property name="mainClass"       value="main.MainApplication"/>
+
+
+    <path id="fullClasspath">
+        <pathelement path="${classpath}"/>
+        <pathelement location="${classesDir}"/>
+        <pathelement location="${testClassesDir}"/>
+        <fileset dir="${librariesDir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+
+
+    <path id="jarClasspath">
+        <pathelement path="${classpath}"/>
+        <pathelement location="${jarFile}"/>
+        <fileset dir="${librariesDir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+
+
+    <target name="setup" description="Prepares the project directories.">
+        <mkdir dir="${sourceDir}"/>
+        <mkdir dir="${buildDir}"/>
+        <mkdir dir="${librariesDir}"/>
+        <mkdir dir="${testDir}"/>
+        <delete>
+            <fileset dir="." defaultexcludes="no" includes="**/*~"/>
+        </delete>
+    </target>
+
+
+
+    <target name="clean" description="Cleans all the automatically generated files.">
+        <delete dir="${buildDir}"/>
+        <antcall target="cdoc"/>
+        <antcall target="setup"/>
+    </target>
+
+
+
+    <target name="update" depends="-check-Ocotillo" if="Ocotillo.present" description="Updates the Ocotillo library.">
+        <copy file="../Ocotillo/build/jar/Ocotillo.jar" todir="${librariesDir}"/>
+    </target> 
+    <target name="-check-Ocotillo">
+        <available file="../Ocotillo/build.xml" property="Ocotillo.present"/>
+    </target>
+
+
+
+    <target name="build" depends="setup" description="Compiles the project.">
+        <mkdir dir="${classesDir}"/>
+        <mkdir dir="${testClassesDir}"/>
+        <javac srcdir="${sourceDir}" destdir="${classesDir}" classpathref="fullClasspath" encoding="UTF-8" debug="true" includeantruntime="false">
+            <compilerarg value="-Xlint"/>
+        </javac>
+        <javac srcdir="${testDir}" destdir="${testClassesDir}" classpathref="fullClasspath" encoding="UTF-8" debug="true" includeantruntime="false">
+            <compilerarg value="-Xlint"/>
+        </javac>
+    </target>
+
+
+
+    <target name="test" depends="build" description="Runs all projects tests.">
+        <mkdir dir="${testReportsDir}"/>
+        <junit printsummary="yes" haltonfailure="no" fork="true">
+            <jvmarg value="-Dfile.encoding=UTF-8"/>
+            <classpath refid="fullClasspath"/>
+            <formatter type="xml"/>
+            <formatter type="brief" usefile="false"/>
+            <assertions> 
+                <enable/> 
+            </assertions>
+            <batchtest fork="yes" todir="${testReportsDir}">
+                <fileset dir="${testDir}">
+                    <include name="**/*Test.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    
+    
+    <target name="jar" depends="build" description="Generates a jar file for the project which does not include the libraries.">
+        <mkdir dir="${jarDir}"/>
+        <jar destfile="${jarFile}" basedir="${classesDir}">
+            <manifest>
+                <attribute name="Main-Class" value="${mainClass}"/>
+            </manifest>
+        </jar>
+    </target>
+
+
+
+    <target name="onejar" depends="jar" description="Generates a jar file for the project which include all libraries as well.">
+        <mkdir dir="${jarDir}"/>
+        <taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask" onerror="report" classpathref="fullClasspath" />
+        <one-jar destfile="${onejarFile}">
+            <manifest>
+                <attribute name="Main-Class" value="${mainClass}"/>
+            </manifest>
+            <main jar="${jarFile}"/>
+            <lib>
+                <fileset dir="${librariesDir}">
+                    <include name="**/*.jar"/>
+                </fileset>
+            </lib>
+        </one-jar>
+    </target>
+    
+    
+
+    <target name="run" depends="build" description="Executes the project.">
+        <java classname="${mainClass}" classpathref="fullClasspath" fork="true">
+            <assertions> 
+                <enable/> 
+            </assertions>
+        </java>
+    </target>
+
+
+
+    <target name="runj" depends="jar" description="Executes the project from the jar file.">
+        <java classname="${mainClass}" classpathref="jarClasspath" fork="true"/>
+    </target>
+    
+
+
+    <target name="runoj" depends="onejar" description="Executes the project from the one-jar file.">
+        <java jar="${onejarFile}" fork="true"/>
+    </target>
+
+
+
+    <target name="cbuild" depends="clean,jar" description="Cleans and produces the jar file."/>
+    <target name="crun" depends="clean,run" description="Cleans and runs the code."/>
+    <target name="crunj" depends="clean,runj" description="Cleans and runs the jar file."/>
+    <target name="crunoj" depends="clean,runoj" description="Cleans and runs the one-jar file."/>
+
+
+
+    <target name="cdoc" description="Cleans the documentation.">
+        <delete>
+            <fileset dir="${docDir}" defaultexcludes="yes">
+                <include name="**/*.aux"/>
+                <include name="**/*.bbl"/>
+                <include name="**/*.blg"/>
+                <include name="**/*-blx.bib"/>
+                <include name="**/*.log"/>
+                <include name="**/*.out"/>
+                <include name="**/*.pdf"/>
+                <include name="**/*.run.xml"/>
+                <include name="**/*.backup"/>
+                <exclude name="**/Figures/*.pdf"/>
+            </fileset>
+        </delete>
+    </target>
+
+
+
+    <target name="jdoc" description="Produces the Java Documentation.">
+        <mkdir dir="${javaDocDir}"/>
+        <javadoc access="public" destdir="${javaDocDir}" classpathref="fullClasspath" windowtitle="IMap">
+            <fileset dir="${sourceDir}" defaultexcludes="yes">
+                <include name="**/*.java"/>
+            </fileset>
+        </javadoc>
+    </target>
+
+
+
+</project>
